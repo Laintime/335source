@@ -295,23 +295,20 @@ void Battleground::Update(uint32 diff)
 
 	// Dementia
 
+	// DEBUG TIMERS:
 	for (BattlegroundPlayerMap::const_iterator itr = GetPlayers().begin(); itr != GetPlayers().end(); ++itr)
 	{
-		if (sWorld->getBoolConfig(CONFIG_DEMENTIA_ENABLE) == false)
-		{
-			return;
-		}
-
 		if (Player* player = ObjectAccessor::FindPlayer(itr->first))
 		{
 			if (player->InArena() && GetArenaType() == ARENA_TYPE_2v2)
 			{
+				if (sWorld->getBoolConfig(CONFIG_DEMENTIA_ENABLE) == 0)
+				{
+					return;
+				}
 
-				Pet* pet = player->GetPet();
 				Aura* demAura = player->GetAura(41406);
 				float startTimer = 10 * MINUTE * IN_MILLISECONDS;
-
-
 
 				if (!player->IsSpectator() && !player->IsGameMaster())
 				{
@@ -320,17 +317,21 @@ void Battleground::Update(uint32 diff)
 					{
 						if (!player->HasAura(41406))
 						{
-							if (pet)
-							{
-								if (!pet->HasAura(41406))
-								{
-									pet->AddAura(41406, pet);
-								}
-							}
 							player->AddAura(41406, player);
 							player->GetSession()->SendAreaTriggerMessage("Damage and healing is going to progressively increase every minute from now! "
 								"This is made in case of draw for this arena.");
+						}
 
+						if (Pet* pet = ObjectAccessor::FindPet(itr->first))
+						{
+							Aura* pemAura = pet->GetAura(41406);
+							if (!pet->HasAura(41406))
+							{
+								pet->AddAura(41406, pet);
+							}
+							else
+								if (pet->IsSummon())
+									pet->AddAura(41406, pet);
 						}
 					}
 
@@ -341,19 +342,19 @@ void Battleground::Update(uint32 diff)
 						{
 							player->AddAura(41406, player);
 							player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
+						}
 
-							if (pet)
+						if (Pet* pet = ObjectAccessor::FindPet(itr->first))
+						{
+							Aura* pemAura = pet->GetAura(41406);
+							if (pet && pemAura->GetStackAmount() == 1)
+
 							{
-								Aura* demAuraPet = pet->GetAura(41406);
-								if (!pet->HasAura(41406))
-								{
-									pet->SetAuraStack(41406, pet, 2);
-								}
-								else if (demAuraPet->GetStackAmount() == 1)
-								{
-									pet->AddAura(41406, pet);
-								}
+								pet->AddAura(41406, pet);
 							}
+							else
+								if (pet->IsSummon())
+									pet->AddAura(41406, pet);
 						}
 					}
 
@@ -364,212 +365,66 @@ void Battleground::Update(uint32 diff)
 						{
 							player->AddAura(41406, player);
 							player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
+						}
 
-							if (pet)
+						if (Pet* pet = ObjectAccessor::FindPet(itr->first))
+						{
+							Aura* pemAura = pet->GetAura(41406);
+							if (pet && pemAura->GetStackAmount() == 2)
+
 							{
-								Aura* demAuraPet = pet->GetAura(41406);
-								if (!pet->HasAura(41406))
-								{
+								pet->AddAura(41406, pet);
+							}
+							else
+								if (pet->IsSummon())
 									pet->AddAura(41406, pet);
-									pet->SetAuraStack(41406, pet, 3);
-								}
-								else if (demAuraPet->GetStackAmount() == 2)
-								{
+						}
+					}
+
+					if ((GetStartTime() >= 13 * MINUTE * IN_MILLISECONDS) &&
+						(GetStartTime() <= 13.1 * MINUTE * IN_MILLISECONDS))
+					{
+						if (demAura->GetStackAmount() == 3)
+						{
+							player->AddAura(41406, player);
+							player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
+						}
+
+						if (Pet* pet = ObjectAccessor::FindPet(itr->first))
+						{
+							Aura* pemAura = pet->GetAura(41406);
+							if (pet && pemAura->GetStackAmount() == 3)
+
+							{
+								pet->AddAura(41406, pet);
+							}
+							else
+								if (pet->IsSummon())
 									pet->AddAura(41406, pet);
-								}
-							}
+						}
+					}
+
+					if ((GetStartTime() >= 14 * MINUTE * IN_MILLISECONDS) &&
+						(GetStartTime() <= 14.1 * MINUTE * IN_MILLISECONDS))
+					{
+						if (demAura->GetStackAmount() == 4)
+						{
+							player->AddAura(41406, player);
+							player->GetSession()->SendAreaTriggerMessage("Damage and healing is increased! This is the last tick of anti-draw system, "
+								"which means damage and healing won't be increased anymore!");
 						}
 
-						if ((GetStartTime() >= 13 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 13.1 * MINUTE * IN_MILLISECONDS))
+						if (Pet* pet = ObjectAccessor::FindPet(itr->first))
 						{
-							if (demAura->GetStackAmount() == 3)
+							Aura* pemAura = pet->GetAura(41406);
+							if (pet && pemAura->GetStackAmount() == 4)
+
 							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 4);
-									}
-									else if (demAuraPet->GetStackAmount() == 3)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
+								pet->AddAura(41406, pet);
 							}
-						}
-
-						if ((GetStartTime() >= 14 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 14.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 4)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 5);
-									}
-									else if (demAuraPet->GetStackAmount() == 4)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
-						}
-
-						if ((GetStartTime() >= 15 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 15.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 5)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 6);
-									}
-									else if (demAuraPet->GetStackAmount() == 5)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
-						}
-
-						if ((GetStartTime() >= 16 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 16.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 6)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 7);
-									}
-									else if (demAuraPet->GetStackAmount() == 6)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
-						}
-
-						if ((GetStartTime() >= 17 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 17.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 7)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 8);
-									}
-									else if (demAuraPet->GetStackAmount() == 7)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
-						}
-
-						if ((GetStartTime() >= 18 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 18.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 8)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 9);
-									}
-									else if (demAuraPet->GetStackAmount() == 8)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
-						}
-
-						if ((GetStartTime() >= 19 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 19.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 9)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 10);
-									}
-									else if (demAuraPet->GetStackAmount() == 9)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
-						}
-
-						if ((GetStartTime() >= 20 * MINUTE * IN_MILLISECONDS) &&
-							(GetStartTime() <= 20.1 * MINUTE * IN_MILLISECONDS))
-						{
-							if (demAura->GetStackAmount() == 10)
-							{
-								player->AddAura(41406, player);
-								player->GetSession()->SendAreaTriggerMessage("Damage and healing is slightly increased!");
-
-								if (pet)
-								{
-									Aura* demAuraPet = pet->GetAura(41406);
-									if (!pet->HasAura(41406))
-									{
-										pet->AddAura(41406, pet);
-										pet->SetAuraStack(41406, pet, 10);
-									}
-									else if (demAuraPet->GetStackAmount() == 10)
-									{
-										pet->AddAura(41406, pet);
-									}
-								}
-							}
+							else
+								if (pet->IsSummon())
+									pet->AddAura(41406, pet);
 						}
 					}
 				}
